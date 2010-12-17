@@ -112,6 +112,11 @@ public class Reader {
 	}
 
 	public static void main(String[] args) throws Exception {
+		if (args.length != 1) {
+			throw new IllegalArgumentException(
+					"Expected exactly one argument which should be the path of the configuration file");
+		}
+
 		new Reader(args[0]).run();
 	}
 }
