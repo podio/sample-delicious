@@ -9,6 +9,9 @@ import java.util.List;
 import java.util.Properties;
 
 import com.podio.BaseAPI;
+import com.podio.app.AppAPI;
+import com.podio.app.Application;
+import com.podio.app.ApplicationField;
 import com.podio.item.FieldValuesUpdate;
 import com.podio.item.ItemAPI;
 import com.podio.item.ItemBadge;
@@ -25,15 +28,9 @@ import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 
 public class Reader {
 
-	private static final int APP_ID = 13938;
-
-	private static final int TITLE = 76687;
-	private static final int URL = 76688;
-	private static final int NOTES = 76689;
-
 	private final String feed;
 
-	private final String space;
+	private final int appId;
 
 	private BaseAPI podioAPI;
 
@@ -41,7 +38,9 @@ public class Reader {
 		Properties config = new Properties();
 		config.load(new FileInputStream(configFile));
 
-		this.podioAPI = new BaseAPI("api.nextpodio.dk", "upload.nextpodio.dk",
+		String endpoint = config.getProperty("podio.endpoint");
+
+		this.podioAPI = new BaseAPI("api." + endpoint, "upload." + endpoint,
 				443, true, false, new OAuthClientCredentials(
 						config.getProperty("podio.client.mail"),
 						config.getProperty("podio.client.secret")),
@@ -50,7 +49,7 @@ public class Reader {
 						.getProperty("podio.user.password")));
 
 		this.feed = config.getProperty("delicious.feed");
-		this.space = config.getProperty("podio.space");
+		this.appId = Integer.parseInt(config.getProperty("podio.app"));
 	}
 
 	public void run() throws Exception {
@@ -87,26 +86,21 @@ public class Reader {
 		return bookmarks;
 	}
 
+	private AppMapping getAppMapping() {
+		Application app = new AppAPI(podioAPI).getApp(appId);
+
+		return AppMapping.get(app);
+	}
+
 	private void saveItems(List<Bookmark> bookmarks) {
+		AppMapping mapping = getAppMapping();
 		ItemAPI itemAPI = new ItemAPI(podioAPI);
 
 		for (Bookmark bookmark : bookmarks) {
-			List<ItemBadge> items = itemAPI.getItemsByExternalId(APP_ID,
+			List<ItemBadge> items = itemAPI.getItemsByExternalId(appId,
 					bookmark.getId()).getItems();
 			if (items.size() == 0) {
-				List<FieldValuesUpdate> fields = new ArrayList<FieldValuesUpdate>();
-				fields.add(new FieldValuesUpdate(TITLE, "value", bookmark
-						.getTitle()));
-				fields.add(new FieldValuesUpdate(URL, "value", bookmark
-						.getLink()));
-				fields.add(new FieldValuesUpdate(NOTES, "value", bookmark
-						.getNotes()));
-
-				itemAPI.addItem(
-						APP_ID,
-						new ItemCreate(bookmark.getId(), fields, Collections
-								.<Integer> emptyList(), bookmark.getTags()),
-						true);
+				itemAPI.addItem(appId, mapping.map(bookmark), true);
 			}
 		}
 	}
@@ -118,5 +112,51 @@ public class Reader {
 		}
 
 		new Reader(args[0]).run();
+	}
+
+	private static final class AppMapping {
+
+		private final int title;
+
+		private final int url;
+
+		private final int notes;
+
+		private AppMapping(int title, int url, int notes) {
+			super();
+			this.title = title;
+			this.url = url;
+			this.notes = notes;
+		}
+
+		public ItemCreate map(Bookmark bookmark) {
+			List<FieldValuesUpdate> fields = new ArrayList<FieldValuesUpdate>();
+			fields.add(new FieldValuesUpdate(title, "value", bookmark
+					.getTitle()));
+			fields.add(new FieldValuesUpdate(url, "value", bookmark.getLink()));
+			fields.add(new FieldValuesUpdate(notes, "value", bookmark
+					.getNotes()));
+
+			return new ItemCreate(bookmark.getId(), fields,
+					Collections.<Integer> emptyList(), bookmark.getTags());
+		}
+
+		public static AppMapping get(Application app) {
+			List<ApplicationField> fields = app.getFields();
+
+			return new AppMapping(getField(fields, "Title"), getField(fields,
+					"URL"), getField(fields, "Notes"));
+		}
+
+		private static int getField(List<ApplicationField> fields, String label) {
+			for (ApplicationField field : fields) {
+				if (field.getConfiguration().getLabel().equals(label)) {
+					return field.getId();
+				}
+			}
+
+			throw new IllegalArgumentException("No field found with the label "
+					+ label);
+		}
 	}
 }
