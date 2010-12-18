@@ -26,13 +26,19 @@ import com.sun.syndication.fetcher.impl.FeedFetcherCache;
 import com.sun.syndication.fetcher.impl.HashMapFeedInfoCache;
 import com.sun.syndication.fetcher.impl.HttpURLFeedFetcher;
 
-public class Reader {
+/**
+ * Imports bookmarks from delicious to a Podio app. The feed, app id and
+ * authentication configuration must be given in a configuration file.
+ * 
+ * The app in Podio must have 3 fields with the labels Title, URL and Notes.
+ */
+public final class Reader {
 
 	private final String feed;
 
 	private final int appId;
 
-	private BaseAPI podioAPI;
+	private final BaseAPI podioAPI;
 
 	public Reader(String configFile) throws IOException {
 		Properties config = new Properties();
@@ -52,17 +58,37 @@ public class Reader {
 		this.appId = Integer.parseInt(config.getProperty("podio.app"));
 	}
 
+	/**
+	 * Performs the loading and saving of bookmarks
+	 * 
+	 * @throws Exception
+	 *             If any error occurs during loading or saving
+	 */
 	public void run() throws Exception {
 		List<Bookmark> bookmarks = loadBookmarks();
-		saveItems(bookmarks);
+		saveBookmarks(bookmarks);
 	}
 
+	/**
+	 * Retrieves the feed from delicious as an RSS feed
+	 * 
+	 * @return The given feed
+	 * @throws Exception
+	 *             If any error occurs during communication with delicious
+	 */
 	private SyndFeed getFeed() throws Exception {
 		FeedFetcherCache feedInfoCache = HashMapFeedInfoCache.getInstance();
 		FeedFetcher feedFetcher = new HttpURLFeedFetcher(feedInfoCache);
 		return feedFetcher.retrieveFeed(new URL(feed));
 	}
 
+	/**
+	 * Loads the bookmarks from delicious by parsing the RSS feed
+	 * 
+	 * @return The loaded bookmarks
+	 * @throws Exception
+	 *             If any error occurs while loading the bookmarks
+	 */
 	private List<Bookmark> loadBookmarks() throws Exception {
 		SyndFeed syndFeed = getFeed();
 
@@ -86,25 +112,47 @@ public class Reader {
 		return bookmarks;
 	}
 
+	/**
+	 * Creates the app mapping for the app id from the configuration
+	 * 
+	 * @return The app mapping created
+	 */
 	private AppMapping getAppMapping() {
 		Application app = new AppAPI(podioAPI).getApp(appId);
 
 		return AppMapping.get(app);
 	}
 
-	private void saveItems(List<Bookmark> bookmarks) {
+	/**
+	 * Saves the bookmarks as items in Podio
+	 * 
+	 * @param bookmarks
+	 *            The bookmarks to save
+	 */
+	private void saveBookmarks(List<Bookmark> bookmarks) {
 		AppMapping mapping = getAppMapping();
 		ItemAPI itemAPI = new ItemAPI(podioAPI);
 
 		for (Bookmark bookmark : bookmarks) {
+			// Check that the bookmark has not already been added
 			List<ItemBadge> items = itemAPI.getItemsByExternalId(appId,
 					bookmark.getId()).getItems();
 			if (items.size() == 0) {
+				// No items exists, so add the item
 				itemAPI.addItem(appId, mapping.map(bookmark), true);
 			}
+			// TODO: Update the existing bookmark with new title, notes and tags
 		}
 	}
 
+	/**
+	 * Start the importer with the given configuration file
+	 * 
+	 * @param args
+	 *            The first parameter must be the path to the configuration file
+	 * @throws Exception
+	 *             If any error occurs during execution
+	 */
 	public static void main(String[] args) throws Exception {
 		if (args.length != 1) {
 			throw new IllegalArgumentException(
@@ -114,6 +162,9 @@ public class Reader {
 		new Reader(args[0]).run();
 	}
 
+	/**
+	 * Maintans a mapping for the individual fields in the app
+	 */
 	private static final class AppMapping {
 
 		private final int title;
@@ -129,6 +180,14 @@ public class Reader {
 			this.notes = notes;
 		}
 
+		/**
+		 * Returns the create object to be used when creating the object in
+		 * Podio
+		 * 
+		 * @param bookmark
+		 *            The bookmark to map
+		 * @return The mapped object
+		 */
 		public ItemCreate map(Bookmark bookmark) {
 			List<FieldValuesUpdate> fields = new ArrayList<FieldValuesUpdate>();
 			fields.add(new FieldValuesUpdate(title, "value", bookmark
@@ -141,6 +200,13 @@ public class Reader {
 					Collections.<Integer> emptyList(), bookmark.getTags());
 		}
 
+		/**
+		 * Creates a mapping configuration based on the app
+		 * 
+		 * @param app
+		 *            The app to create a mapping for
+		 * @return The mapping created
+		 */
 		public static AppMapping get(Application app) {
 			List<ApplicationField> fields = app.getFields();
 
@@ -148,6 +214,15 @@ public class Reader {
 					"URL"), getField(fields, "Notes"));
 		}
 
+		/**
+		 * Finds a field in the list of fields with the given name
+		 * 
+		 * @param fields
+		 *            The fields to search through
+		 * @param label
+		 *            The label to search for
+		 * @return The id of the matching field
+		 */
 		private static int getField(List<ApplicationField> fields, String label) {
 			for (ApplicationField field : fields) {
 				if (field.getConfiguration().getLabel().equals(label)) {

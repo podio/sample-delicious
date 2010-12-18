@@ -2,6 +2,9 @@ package com.podio.delicious;
 
 import java.util.List;
 
+/**
+ * Represents a bookmark in delicious
+ */
 public final class Bookmark {
 
 	private final String id;
