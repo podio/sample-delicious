@@ -4,7 +4,7 @@ import java.io.FileInputStream;
 import java.util.List;
 import java.util.Properties;
 
-import com.podio.BaseAPI;
+import com.podio.ResourceFactory;
 import com.podio.oauth.OAuthClientCredentials;
 import com.podio.oauth.OAuthUsernameCredentials;
 
@@ -39,7 +39,7 @@ public final class Importer {
 
 		String endpoint = config.getProperty("podio.endpoint");
 
-		BaseAPI podioAPI = new BaseAPI("api." + endpoint, "upload." + endpoint,
+		ResourceFactory podioAPI = new ResourceFactory("api." + endpoint, "upload." + endpoint,
 				443, true, false, new OAuthClientCredentials(
 						config.getProperty("podio.client.mail"),
 						config.getProperty("podio.client.secret")),

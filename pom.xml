@@ -41,6 +41,12 @@
 			</plugin>
 		</plugins>
 	</build>
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>http://creativecommons.org/licenses/MIT/</url>
+		</license>
+	</licenses>
 	<repositories>
 		<repository>
 			<id>nexus.podio.com</id>
@@ -59,7 +65,7 @@
 		<dependency>
 			<groupId>com.podio</groupId>
 			<artifactId>api</artifactId>
-			<version>0.3.0</version>
+			<version>0.4.0-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

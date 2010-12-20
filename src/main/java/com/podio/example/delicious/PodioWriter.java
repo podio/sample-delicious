@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import com.podio.BaseAPI;
+import com.podio.ResourceFactory;
 import com.podio.app.AppAPI;
 import com.podio.app.Application;
 import com.podio.app.ApplicationField;
@@ -22,7 +22,7 @@ public final class PodioWriter {
 
 	private final int appId;
 
-	private final BaseAPI podioAPI;
+	private final ResourceFactory podioAPI;
 
 	/**
 	 * Creates a new writer that will write to the given app using the API
@@ -32,7 +32,7 @@ public final class PodioWriter {
 	 * @param podioAPI
 	 *            The API class to use
 	 */
-	public PodioWriter(int appId, BaseAPI podioAPI) {
+	public PodioWriter(int appId, ResourceFactory podioAPI) {
 		super();
 		this.appId = appId;
 		this.podioAPI = podioAPI;
