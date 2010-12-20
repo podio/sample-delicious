@@ -6,6 +6,9 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 
+import com.podio.example.delicious.Bookmark;
+import com.podio.example.delicious.DeliciousReader;
+
 public class DeliciousReaderTest {
 
 	@Test

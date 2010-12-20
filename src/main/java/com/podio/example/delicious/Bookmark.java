@@ -1,4 +1,4 @@
-package com.podio.delicious;
+package com.podio.example.delicious;
 
 import java.util.List;
 
