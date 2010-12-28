@@ -1,4 +1,4 @@
-package com.podio.example.delicious;
+package com.podio.sample.delicious;
 
 import java.io.FileInputStream;
 import java.util.List;
