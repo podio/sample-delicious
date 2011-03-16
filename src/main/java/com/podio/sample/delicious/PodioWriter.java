@@ -102,8 +102,10 @@ public final class PodioWriter {
 			fields.add(new FieldValuesUpdate(title, "value", bookmark
 					.getTitle()));
 			fields.add(new FieldValuesUpdate(url, "value", bookmark.getLink()));
-			fields.add(new FieldValuesUpdate(notes, "value", bookmark
-					.getNotes()));
+			if (bookmark.getNotes() != null) {
+				fields.add(new FieldValuesUpdate(notes, "value", bookmark
+						.getNotes()));
+			}
 
 			return new ItemCreate(bookmark.getId(), fields,
 					Collections.<Integer> emptyList(), bookmark.getTags());

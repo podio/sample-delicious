@@ -37,10 +37,8 @@ public final class Importer {
 		Properties config = new Properties();
 		config.load(new FileInputStream(args[0]));
 
-		String endpoint = config.getProperty("podio.endpoint");
-
-		ResourceFactory podioAPI = new ResourceFactory("api." + endpoint, "upload." + endpoint,
-				443, true, false, new OAuthClientCredentials(
+		ResourceFactory podioAPI = new ResourceFactory(
+				new OAuthClientCredentials(
 						config.getProperty("podio.client.mail"),
 						config.getProperty("podio.client.secret")),
 				new OAuthUsernameCredentials(config
