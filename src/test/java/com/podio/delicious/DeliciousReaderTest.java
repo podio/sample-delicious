@@ -17,7 +17,7 @@ public class DeliciousReaderTest {
 				"http://feeds.delicious.com/v2/rss/chrholm2003");
 		List<Bookmark> bookmarks = reader.read();
 
-		Bookmark bookmark = bookmarks.get(0);
+		Bookmark bookmark = bookmarks.get(2);
 		Assert.assertEquals(bookmark.getId(),
 				"1300b39b849a84f637af0d46dbaf9995");
 		Assert.assertEquals(bookmark.getTitle(), "Podio");
