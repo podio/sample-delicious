@@ -67,7 +67,7 @@ public final class DeliciousReader {
 					entry.getUri().lastIndexOf('#'));
 
 			bookmarks.add(new Bookmark(id, entry.getTitle(), entry.getLink(),
-					tags, entry.getDescription().getValue()));
+					tags, entry.getDescription() != null ? entry.getDescription().getValue() : null));
 		}
 
 		return bookmarks;
