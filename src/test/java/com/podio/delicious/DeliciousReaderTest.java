@@ -14,10 +14,10 @@ public class DeliciousReaderTest {
 	@Test
 	public void readBookmarks() throws Exception {
 		DeliciousReader reader = new DeliciousReader(
-				"http://feeds.delicious.com/v2/rss/chrholm2003");
+				"http://feeds.delicious.com/v2/rss/chrholm");
 		List<Bookmark> bookmarks = reader.read();
 
-		Bookmark bookmark = bookmarks.get(2);
+		Bookmark bookmark = bookmarks.get(1);
 		Assert.assertEquals(bookmark.getId(),
 				"1300b39b849a84f637af0d46dbaf9995");
 		Assert.assertEquals(bookmark.getTitle(), "Podio");
